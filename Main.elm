@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
 import String exposing (toUpper, contains)
 import Tuple exposing (first, second)
@@ -137,14 +138,11 @@ matchAndFlip plugboard c =
     in
         c
             |> flipOrPass wireOne
+            |> flipOrPass wireTwo
+            |> flipOrPass wireThree
 
 
-
--- |> filpOrPass wireTwo
--- |> filpOrPass wireThree
--- encode : String -> String
-
-
+encode : (EnigmaLetter -> EnigmaLetter) -> String -> String
 encode matchFnc str =
     str
         |> toUpper
@@ -180,9 +178,24 @@ subscriptions model =
 -- View
 
 
+(=>) =
+    (,)
+
+
+containerStyle =
+    [ "height" => "100%"
+    , "display" => "flex"
+    , "flex" => "1"
+    , "justify-content" => "center"
+    , "align-items" => "center"
+    , "flex-direction" => "column"
+    , "flex-grow" => "1"
+    ]
+
+
 view : Model -> Html Msg
 view model =
-    div []
+    div [ style containerStyle ]
         [ input [ onInput Set ]
             []
         , br [] []
