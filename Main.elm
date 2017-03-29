@@ -3,6 +3,7 @@ module Main exposing (..)
 import Html exposing (..)
 import Html.Events exposing (onInput)
 import String exposing (toUpper, contains)
+import Tuple exposing (first, second)
 
 
 main : Program Never Model Msg
@@ -21,23 +22,36 @@ main =
 
 type alias Model =
     { str : String
-    , plugboard : Pair
+    , plugboard : Plugboard
     }
 
 
 type EnigmaLetter
     = A
     | B
+    | C
+    | D
 
 
 type alias Pair =
     ( EnigmaLetter, EnigmaLetter )
 
 
+type alias Plugboard =
+    { wireOne : Maybe Pair
+    , wireTwo : Maybe Pair
+    , wireThree : Maybe Pair
+    }
+
+
 init : ( Model, Cmd Msg )
 init =
     ( { str = ""
-      , plugboard = ( A, B )
+      , plugboard =
+            { wireOne = Just ( A, B )
+            , wireTwo = Nothing
+            , wireThree = Nothing
+            }
       }
     , Cmd.none
     )
@@ -60,11 +74,17 @@ fromEnigmaLetter u =
         B ->
             'B'
 
+        C ->
+            'C'
+
+        D ->
+            'D'
+
 
 fromEnigmaLetters : List EnigmaLetter -> String
 fromEnigmaLetters engimaLetterList =
     engimaLetterList
-        |> List.map (\c -> fromEnigmaLetter c)
+        |> List.map fromEnigmaLetter
         |> String.fromList
 
 
@@ -77,6 +97,12 @@ toEnigmaLetter c =
         'B' ->
             Just B
 
+        'C' ->
+            Just C
+
+        'D' ->
+            Just D
+
         _ ->
             Nothing
 
@@ -88,15 +114,34 @@ toEnigmaLetters str =
         |> List.filterMap toEnigmaLetter
 
 
-matchAndFlip : Model -> EnigmaLetter -> EnigmaLetter
-matchAndFlip model c =
-    if Tuple.first model.plugboard == c then
-        Tuple.second model.plugboard
-    else
-        Tuple.first model.plugboard
+flipOrPass : Maybe Pair -> EnigmaLetter -> EnigmaLetter
+flipOrPass wire c =
+    case wire of
+        Just ( fst, snd ) ->
+            if fst == c then
+                snd
+            else if snd == c then
+                fst
+            else
+                c
+
+        Nothing ->
+            c
+
+
+matchAndFlip : Plugboard -> EnigmaLetter -> EnigmaLetter
+matchAndFlip plugboard c =
+    let
+        { wireOne, wireTwo, wireThree } =
+            plugboard
+    in
+        c
+            |> flipOrPass wireOne
 
 
 
+-- |> filpOrPass wireTwo
+-- |> filpOrPass wireThree
 -- encode : String -> String
 
 
@@ -114,7 +159,7 @@ update msg model =
         Set str ->
             let
                 matchFnc =
-                    matchAndFlip model
+                    matchAndFlip model.plugboard
 
                 newStr =
                     encode matchFnc str
