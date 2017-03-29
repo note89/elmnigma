@@ -2,9 +2,10 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onInput, onClick)
 import String exposing (toUpper, contains)
-import Tuple exposing (first, second)
+import Plugboard exposing (Plugboard, Pair)
+import EnigmaLetters exposing (EnigmaLetter(..))
 
 
 main : Program Never Model Msg
@@ -27,32 +28,10 @@ type alias Model =
     }
 
 
-type EnigmaLetter
-    = A
-    | B
-    | C
-    | D
-
-
-type alias Pair =
-    ( EnigmaLetter, EnigmaLetter )
-
-
-type alias Plugboard =
-    { wireOne : Maybe Pair
-    , wireTwo : Maybe Pair
-    , wireThree : Maybe Pair
-    }
-
-
 init : ( Model, Cmd Msg )
 init =
     ( { str = ""
-      , plugboard =
-            { wireOne = Just ( A, B )
-            , wireTwo = Nothing
-            , wireThree = Nothing
-            }
+      , plugboard = Plugboard.init
       }
     , Cmd.none
     )
@@ -64,6 +43,7 @@ init =
 
 type Msg
     = Set String
+    | Connect EnigmaLetter EnigmaLetter
 
 
 fromEnigmaLetter : EnigmaLetter -> Char
@@ -164,6 +144,16 @@ update msg model =
             in
                 ( { model | str = newStr }, Cmd.none )
 
+        Connect a b ->
+            let
+                plugboard =
+                    model.plugboard
+
+                newPlugboard =
+                    { plugboard | wireOne = Just ( a, b ) }
+            in
+                ( { model | plugboard = newPlugboard }, Cmd.none )
+
 
 
 -- Subscriptions
@@ -200,4 +190,5 @@ view model =
             []
         , br [] []
         , text model.str
+        , div [ onClick <| Connect A B ] [ text "connect A and B" ]
         ]
