@@ -6,6 +6,7 @@ import Html.Events exposing (onInput, onClick)
 import String exposing (toUpper, contains)
 import Plugboard exposing (Plugboard, Pair)
 import EnigmaLetters exposing (EnigmaLetter(..))
+import Tuple exposing (first)
 
 
 main : Program Never Model Msg
@@ -25,6 +26,7 @@ main =
 type alias Model =
     { str : String
     , plugboard : Plugboard
+    , nextID : Int
     }
 
 
@@ -32,6 +34,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { str = ""
       , plugboard = Plugboard.init
+      , nextID = 0
       }
     , Cmd.none
     )
@@ -44,6 +47,7 @@ init =
 type Msg
     = Set String
     | Connect EnigmaLetter EnigmaLetter
+    | AddWire
 
 
 fromEnigmaLetter : EnigmaLetter -> Char
@@ -95,31 +99,39 @@ toEnigmaLetters str =
         |> List.filterMap toEnigmaLetter
 
 
-flipOrPass : Maybe Pair -> EnigmaLetter -> EnigmaLetter
-flipOrPass wire c =
-    case wire of
-        Just ( fst, snd ) ->
-            if fst == c then
-                snd
-            else if snd == c then
-                fst
-            else
-                c
 
-        Nothing ->
-            c
+-- Can we make sure that Enimgaletter is part
+-- of the Pair ?
+
+
+flip : Pair -> EnigmaLetter -> EnigmaLetter
+flip ( fst, snd ) c =
+    if fst == Just c then
+        case snd of
+            Just a ->
+                a
+
+            Nothing ->
+                c
+    else if snd == Just c then
+        case fst of
+            Just a ->
+                a
+
+            Nothing ->
+                c
+    else
+        c
 
 
 matchAndFlip : Plugboard -> EnigmaLetter -> EnigmaLetter
 matchAndFlip plugboard c =
-    let
-        { wireOne, wireTwo, wireThree } =
-            plugboard
-    in
-        c
-            |> flipOrPass wireOne
-            |> flipOrPass wireTwo
-            |> flipOrPass wireThree
+    case Plugboard.findLink plugboard c of
+        Just link ->
+            flip (Plugboard.getPair link) c
+
+        Nothing ->
+            c
 
 
 encode : (EnigmaLetter -> EnigmaLetter) -> String -> String
@@ -144,13 +156,20 @@ update msg model =
             in
                 ( { model | str = newStr }, Cmd.none )
 
+        AddWire ->
+            let
+                newPlugboard =
+                    Plugboard.addWire model.nextID model.plugboard
+            in
+                ( { model | plugboard = newPlugboard, nextID = model.nextID + 1 }, Cmd.none )
+
         Connect a b ->
             let
                 plugboard =
                     model.plugboard
 
                 newPlugboard =
-                    { plugboard | wireOne = Just ( a, b ) }
+                    Plugboard.addLink a b plugboard
             in
                 ( { model | plugboard = newPlugboard }, Cmd.none )
 
@@ -183,6 +202,69 @@ containerStyle =
     ]
 
 
+alphabetList =
+    [ "A"
+    , "B"
+    , "C"
+    , "D"
+    , "E"
+    , "F"
+    , "G"
+    , "H"
+    , "I"
+    , "J"
+    , "K"
+    , "L"
+    , "M"
+    , "N"
+    , "O"
+    , "P"
+    , "Q"
+    , "R"
+    , "S"
+    , "T"
+    , "U"
+    , "V"
+    , "W"
+    , "X"
+    , "Y"
+    , "Z"
+    ]
+
+
+letterOption letter =
+    option [ value letter ] [ text letter ]
+
+
+selectBox =
+    div []
+        [ select []
+            <| List.map letterOption alphabetList
+            ++ [ option [ selected True ] [] ]
+        ]
+
+
+wirePair name =
+    div [ style [ "display" => "flex" ] ]
+        [ text name
+        , selectBox
+        , selectBox
+        ]
+
+
+wires plugboard =
+    div []
+        <| List.map
+            (\c ->
+                let
+                    text =
+                        "wire " ++ (toString <| (first c) + 1)
+                in
+                    wirePair text
+            )
+            plugboard
+
+
 view : Model -> Html Msg
 view model =
     div [ style containerStyle ]
@@ -190,5 +272,6 @@ view model =
             []
         , br [] []
         , text model.str
-        , div [ onClick <| Connect A B ] [ text "connect A and B" ]
+        , button [ onClick AddWire ] [ text "add wire" ]
+        , wires model.plugboard
         ]
