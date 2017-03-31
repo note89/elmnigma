@@ -94,7 +94,7 @@ pluginContact id_ side letter plugboard =
             listOfUsedLetters plugboard
 
         valid =
-            not (member (letter) list)
+            (not (member (letter) list)) || letter == Nothing
 
         updatePlugboard ( wireID, pair ) =
             if wireID == id_ then
@@ -116,6 +116,11 @@ pluginContact id_ side letter plugboard =
                     plugboard
     in
         newPlugboard
+
+
+plugoutContact : ID -> Side -> Plugboard -> Plugboard
+plugoutContact id_ side plugboard =
+    pluginContact id_ side Nothing plugboard
 
 
 addWire : ID -> Plugboard -> Plugboard

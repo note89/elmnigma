@@ -159,7 +159,7 @@ update msg model =
                                 Plugboard.pluginContact id side eLetter plugboard
 
                         Nothing ->
-                            plugboard
+                            Plugboard.plugoutContact id side plugboard
             in
                 ( { model | plugboard = newPlugboard }, Cmd.none )
 
