@@ -40,6 +40,10 @@ getPair entry =
     second entry
 
 
+
+-- TODO remove maybe
+
+
 listOfUsedLetters : Plugboard -> List (Maybe EnigmaLetter)
 listOfUsedLetters plugboard =
     List.concatMap
@@ -51,6 +55,15 @@ listOfUsedLetters plugboard =
                 [ first p, second p ]
         )
         plugboard
+
+
+listOfUnUsedLetters : Plugboard -> List EnigmaLetter
+listOfUnUsedLetters plugboard =
+    let
+        usedLetters =
+            listOfUsedLetters plugboard
+    in
+        List.filter (\e -> not <| member (Just e) usedLetters) EnigmaLetters.list
 
 
 addLink : EnigmaLetter -> EnigmaLetter -> Plugboard -> Plugboard
@@ -120,6 +133,16 @@ addWire id plugboard =
                     plugboard
     in
         newPlugboard
+
+
+getWire : ID -> Plugboard -> Maybe Pair
+getWire id_ plugboard =
+    let
+        filtred =
+            List.filter (\( wireId, pair ) -> id_ == wireId) plugboard
+                |> List.map (\c -> second c)
+    in
+        head filtred
 
 
 tupleMatch : EnigmaLetter -> Pair -> Bool

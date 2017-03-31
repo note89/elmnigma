@@ -52,18 +52,7 @@ type Msg
 
 fromEnigmaLetter : EnigmaLetter -> Char
 fromEnigmaLetter u =
-    case u of
-        A ->
-            'A'
-
-        B ->
-            'B'
-
-        C ->
-            'C'
-
-        D ->
-            'D'
+    EnigmaLetters.toChar u
 
 
 fromEnigmaLetters : List EnigmaLetter -> String
@@ -217,54 +206,70 @@ containerStyle =
     ]
 
 
-alphabetList : List String
-alphabetList =
-    [ "A"
-    , "B"
-    , "C"
-    , "D"
-    , "E"
-    , "F"
-    , "G"
-    , "H"
-    , "I"
-    , "J"
-    , "K"
-    , "L"
-    , "M"
-    , "N"
-    , "O"
-    , "P"
-    , "Q"
-    , "R"
-    , "S"
-    , "T"
-    , "U"
-    , "V"
-    , "W"
-    , "X"
-    , "Y"
-    , "Z"
-    ]
+letterOption selected_ letter =
+    let
+        strLetter =
+            String.fromChar letter
+    in
+        option [ value strLetter, selected selected_ ] [ text strLetter ]
 
 
-letterOption letter =
-    option [ value letter ] [ text letter ]
+selectBox id_ side plugboard =
+    let
+        alphabetList =
+            Plugboard.listOfUnUsedLetters plugboard
+                |> EnigmaLetters.listToChars
+
+        wirePair =
+            Plugboard.getWire id_ plugboard
+
+        ( mChar, listWithCurrent ) =
+            case wirePair of
+                Just ( fst, snd ) ->
+                    case side of
+                        One ->
+                            case fst of
+                                Just f ->
+                                    let
+                                        char =
+                                            EnigmaLetters.toChar f
+                                    in
+                                        ( Just char
+                                        , (char :: alphabetList)
+                                        )
+
+                                Nothing ->
+                                    ( Nothing, alphabetList )
+
+                        Two ->
+                            case snd of
+                                Just f ->
+                                    let
+                                        char =
+                                            EnigmaLetters.toChar f
+                                    in
+                                        ( Just char
+                                        , char :: alphabetList
+                                        )
+
+                                Nothing ->
+                                    ( Nothing, alphabetList )
+
+                Nothing ->
+                    ( Nothing, alphabetList )
+    in
+        div []
+            [ select [ onInput <| Connect id_ side ]
+                <| List.map (\c -> letterOption (Just c == mChar) c) listWithCurrent
+                ++ [ option [ selected <| mChar == Nothing ] [] ]
+            ]
 
 
-selectBox id_ side =
-    div []
-        [ select [ onInput <| Connect id_ side ]
-            <| List.map letterOption alphabetList
-            ++ [ option [ selected True ] [] ]
-        ]
-
-
-wirePair id_ =
+wirePair id_ plugboard =
     div [ style [ "display" => "flex" ] ]
         [ text <| "wire " ++ (toString <| id_ + 1)
-        , selectBox id_ One
-        , selectBox id_ Two
+        , selectBox id_ One plugboard
+        , selectBox id_ Two plugboard
         ]
 
 
@@ -273,13 +278,10 @@ wires plugboard =
         <| List.map
             (\c ->
                 let
-                    text =
-                        "wire " ++ (toString <| (first c) + 1)
-
                     id_ =
                         first c
                 in
-                    wirePair id_
+                    wirePair id_ plugboard
             )
             plugboard
 
