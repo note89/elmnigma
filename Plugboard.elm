@@ -16,6 +16,11 @@ type alias ID =
     Int
 
 
+type Side
+    = One
+    | Two
+
+
 initWire : Pair
 initWire =
     ( Nothing, Nothing )
@@ -65,6 +70,37 @@ addLink l1 l2 plugboard =
 
                 False ->
                     plugboard ++ [ ( 0, ( Just l1, Just l2 ) ) ]
+    in
+        newPlugboard
+
+
+pluginContact : ID -> Side -> Maybe EnigmaLetter -> Plugboard -> Plugboard
+pluginContact id_ side letter plugboard =
+    let
+        list =
+            listOfUsedLetters plugboard
+
+        valid =
+            not (member (letter) list)
+
+        updatePlugboard ( wireID, pair ) =
+            if wireID == id_ then
+                case side of
+                    One ->
+                        ( wireID, ( letter, second pair ) )
+
+                    Two ->
+                        ( wireID, ( first pair, letter ) )
+            else
+                ( wireID, pair )
+
+        newPlugboard =
+            case valid of
+                True ->
+                    List.map updatePlugboard plugboard
+
+                False ->
+                    plugboard
     in
         newPlugboard
 

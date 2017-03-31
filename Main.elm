@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import String exposing (toUpper, contains)
-import Plugboard exposing (Plugboard, Pair)
+import Plugboard exposing (Plugboard, Pair, ID, Side(..))
 import EnigmaLetters exposing (EnigmaLetter(..))
 import Tuple exposing (first)
 
@@ -46,7 +46,7 @@ init =
 
 type Msg
     = Set String
-    | Connect EnigmaLetter EnigmaLetter
+    | Connect ID Side String
     | AddWire
 
 
@@ -163,13 +163,28 @@ update msg model =
             in
                 ( { model | plugboard = newPlugboard, nextID = model.nextID + 1 }, Cmd.none )
 
-        Connect a b ->
+        Connect id side letter ->
             let
+                char =
+                    letter
+                        |> toUpper
+                        |> String.toList
+                        |> List.head
+
                 plugboard =
                     model.plugboard
 
                 newPlugboard =
-                    Plugboard.addLink a b plugboard
+                    case char of
+                        Just c ->
+                            let
+                                eLetter =
+                                    toEnigmaLetter c
+                            in
+                                Plugboard.pluginContact id side eLetter plugboard
+
+                        Nothing ->
+                            plugboard
             in
                 ( { model | plugboard = newPlugboard }, Cmd.none )
 
@@ -202,6 +217,7 @@ containerStyle =
     ]
 
 
+alphabetList : List String
 alphabetList =
     [ "A"
     , "B"
@@ -236,19 +252,19 @@ letterOption letter =
     option [ value letter ] [ text letter ]
 
 
-selectBox =
+selectBox id_ side =
     div []
-        [ select []
+        [ select [ onInput <| Connect id_ side ]
             <| List.map letterOption alphabetList
             ++ [ option [ selected True ] [] ]
         ]
 
 
-wirePair name =
+wirePair id_ =
     div [ style [ "display" => "flex" ] ]
-        [ text name
-        , selectBox
-        , selectBox
+        [ text <| "wire " ++ (toString <| id_ + 1)
+        , selectBox id_ One
+        , selectBox id_ Two
         ]
 
 
@@ -259,8 +275,11 @@ wires plugboard =
                 let
                     text =
                         "wire " ++ (toString <| (first c) + 1)
+
+                    id_ =
+                        first c
                 in
-                    wirePair text
+                    wirePair id_
             )
             plugboard
 
