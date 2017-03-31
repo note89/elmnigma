@@ -64,21 +64,7 @@ fromEnigmaLetters engimaLetterList =
 
 toEnigmaLetter : Char -> Maybe EnigmaLetter
 toEnigmaLetter c =
-    case c of
-        'A' ->
-            Just A
-
-        'B' ->
-            Just B
-
-        'C' ->
-            Just C
-
-        'D' ->
-            Just D
-
-        _ ->
-            Nothing
+    EnigmaLetters.toEnigmaLetter c
 
 
 toEnigmaLetters : String -> List EnigmaLetter
