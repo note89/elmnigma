@@ -50,28 +50,11 @@ type Msg
     | AddWire
 
 
-fromEnigmaLetter : EnigmaLetter -> Char
-fromEnigmaLetter u =
-    EnigmaLetters.toChar u
-
-
-fromEnigmaLetters : List EnigmaLetter -> String
-fromEnigmaLetters engimaLetterList =
-    engimaLetterList
-        |> List.map fromEnigmaLetter
-        |> String.fromList
-
-
-toEnigmaLetter : Char -> Maybe EnigmaLetter
-toEnigmaLetter c =
-    EnigmaLetters.toEnigmaLetter c
-
-
 toEnigmaLetters : String -> List EnigmaLetter
 toEnigmaLetters str =
     str
         |> String.toList
-        |> List.filterMap toEnigmaLetter
+        |> List.filterMap EnigmaLetters.fromChar
 
 
 
@@ -115,7 +98,7 @@ encode matchFnc str =
         |> toUpper
         |> toEnigmaLetters
         |> List.map matchFnc
-        |> fromEnigmaLetters
+        |> EnigmaLetters.listToString
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -154,7 +137,7 @@ update msg model =
                         Just c ->
                             let
                                 eLetter =
-                                    toEnigmaLetter c
+                                    EnigmaLetters.fromChar c
                             in
                                 Plugboard.pluginContact id side eLetter plugboard
 
@@ -204,7 +187,7 @@ selectBox id_ side plugboard =
     let
         alphabetList =
             Plugboard.listOfUnUsedLetters plugboard
-                |> EnigmaLetters.listToChars
+                |> EnigmaLetters.toListOfChar
 
         wirePair =
             Plugboard.getWire id_ plugboard

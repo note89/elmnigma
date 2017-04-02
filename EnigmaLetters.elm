@@ -30,6 +30,7 @@ type EnigmaLetter
     | Z
 
 
+list : List EnigmaLetter
 list =
     [ A
     , B
@@ -60,8 +61,8 @@ list =
     ]
 
 
-toEnigmaLetter : Char -> Maybe EnigmaLetter
-toEnigmaLetter char =
+fromChar : Char -> Maybe EnigmaLetter
+fromChar char =
     case char of
         'A' ->
             Just A
@@ -145,9 +146,16 @@ toEnigmaLetter char =
             Nothing
 
 
-listToChars : List EnigmaLetter -> List Char
-listToChars list =
+toListOfChar : List EnigmaLetter -> List Char
+toListOfChar list =
     List.map toChar list
+
+
+listToString : List EnigmaLetter -> String
+listToString list =
+    list
+        |> toListOfChar
+        |> String.fromList
 
 
 toChar : EnigmaLetter -> Char
