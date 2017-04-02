@@ -30,6 +30,10 @@ type EnigmaLetter
     | Z
 
 
+
+-- Can this be generated somehow? possible source of bugs
+
+
 list : List EnigmaLetter
 list =
     [ A
@@ -59,6 +63,13 @@ list =
     , Y
     , Z
     ]
+
+
+fromString : String -> List EnigmaLetter
+fromString str =
+    str
+        |> String.toList
+        |> List.filterMap fromChar
 
 
 fromChar : Char -> Maybe EnigmaLetter
@@ -192,7 +203,7 @@ toChar e =
             'J'
 
         K ->
-            'L'
+            'K'
 
         L ->
             'L'

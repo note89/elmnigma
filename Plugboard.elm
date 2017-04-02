@@ -16,6 +16,30 @@ type alias ID =
     Int
 
 
+
+-- This is questionable.
+-- Used to keep track of what side to update in the Pair Tuple
+-- We don't store state for the selectBox
+-- So we otherwise dont know which one in the pair should
+-- be updated when a new value commes in.
+-- If we could figure the currdent value of the selectBox
+-- and send that in with the Updated value we could Just
+-- match on that
+-- ex
+-- current (A, B)
+-- update A to C
+-- after (C, B)
+-- this corisponds better to a regular cable since you
+-- cannot distingish between the two ends
+-- ex
+-- (Nothing, Nothing)
+-- update Nothing to A
+-- take any one of them
+-- (A , Nothing)
+-- update A to D
+-- (D, Nothing)
+
+
 type Side
     = One
     | Two
@@ -158,6 +182,44 @@ tupleMatch letter tuple =
 findLink : Plugboard -> EnigmaLetter -> Maybe ( ID, Pair )
 findLink plugboard letter =
     head <| filter (\p -> tupleMatch letter (getPair p)) plugboard
+
+
+flip : Pair -> EnigmaLetter -> EnigmaLetter
+flip ( fst, snd ) c =
+    let
+        flip_ side =
+            case side of
+                Just a ->
+                    a
+
+                Nothing ->
+                    c
+    in
+        if fst == Just c then
+            flip_ snd
+        else if snd == Just c then
+            flip_ fst
+        else
+            c
+
+
+matchAndFlip : Plugboard -> EnigmaLetter -> EnigmaLetter
+matchAndFlip plugboard eLetter =
+    case findLink plugboard eLetter of
+        Just link ->
+            flip (getPair link) eLetter
+
+        Nothing ->
+            eLetter
+
+
+encode : Plugboard -> String -> String
+encode plugboard str =
+    str
+        |> String.toUpper
+        |> EnigmaLetters.fromString
+        |> List.map (matchAndFlip plugboard)
+        |> EnigmaLetters.listToString
 
 
 

@@ -50,67 +50,13 @@ type Msg
     | AddWire
 
 
-toEnigmaLetters : String -> List EnigmaLetter
-toEnigmaLetters str =
-    str
-        |> String.toList
-        |> List.filterMap EnigmaLetters.fromChar
-
-
-
--- Can we make sure that Enimgaletter is part
--- of the Pair ?
-
-
-flip : Pair -> EnigmaLetter -> EnigmaLetter
-flip ( fst, snd ) c =
-    if fst == Just c then
-        case snd of
-            Just a ->
-                a
-
-            Nothing ->
-                c
-    else if snd == Just c then
-        case fst of
-            Just a ->
-                a
-
-            Nothing ->
-                c
-    else
-        c
-
-
-matchAndFlip : Plugboard -> EnigmaLetter -> EnigmaLetter
-matchAndFlip plugboard c =
-    case Plugboard.findLink plugboard c of
-        Just link ->
-            flip (Plugboard.getPair link) c
-
-        Nothing ->
-            c
-
-
-encode : (EnigmaLetter -> EnigmaLetter) -> String -> String
-encode matchFnc str =
-    str
-        |> toUpper
-        |> toEnigmaLetters
-        |> List.map matchFnc
-        |> EnigmaLetters.listToString
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Set str ->
             let
-                matchFnc =
-                    matchAndFlip model.plugboard
-
                 newStr =
-                    encode matchFnc str
+                    Plugboard.encode model.plugboard str
             in
                 ( { model | str = newStr }, Cmd.none )
 
@@ -123,7 +69,7 @@ update msg model =
 
         Connect id side letter ->
             let
-                char =
+                mChar =
                     letter
                         |> toUpper
                         |> String.toList
@@ -133,7 +79,7 @@ update msg model =
                     model.plugboard
 
                 newPlugboard =
-                    case char of
+                    case mChar of
                         Just c ->
                             let
                                 eLetter =
@@ -192,37 +138,29 @@ selectBox id_ side plugboard =
         wirePair =
             Plugboard.getWire id_ plugboard
 
+        addToAlphabetlist mELetter =
+            case mELetter of
+                Just eLetter ->
+                    let
+                        char =
+                            EnigmaLetters.toChar eLetter
+                    in
+                        ( Just char
+                        , (char :: alphabetList)
+                        )
+
+                Nothing ->
+                    ( Nothing, alphabetList )
+
         ( mChar, listWithCurrent ) =
             case wirePair of
                 Just ( fst, snd ) ->
                     case side of
                         One ->
-                            case fst of
-                                Just f ->
-                                    let
-                                        char =
-                                            EnigmaLetters.toChar f
-                                    in
-                                        ( Just char
-                                        , (char :: alphabetList)
-                                        )
-
-                                Nothing ->
-                                    ( Nothing, alphabetList )
+                            addToAlphabetlist fst
 
                         Two ->
-                            case snd of
-                                Just f ->
-                                    let
-                                        char =
-                                            EnigmaLetters.toChar f
-                                    in
-                                        ( Just char
-                                        , char :: alphabetList
-                                        )
-
-                                Nothing ->
-                                    ( Nothing, alphabetList )
+                            addToAlphabetlist snd
 
                 Nothing ->
                     ( Nothing, alphabetList )
