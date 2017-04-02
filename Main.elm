@@ -48,6 +48,7 @@ type Msg
     = Set String
     | Connect ID Side String
     | AddWire
+    | RemoveWire
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -66,6 +67,13 @@ update msg model =
                     Plugboard.addWire model.nextID model.plugboard
             in
                 ( { model | plugboard = newPlugboard, nextID = model.nextID + 1 }, Cmd.none )
+
+        RemoveWire ->
+            let
+                newPlugboard =
+                    Plugboard.removeWire model.plugboard
+            in
+                ( { model | plugboard = newPlugboard, nextID = model.nextID - 1 }, Cmd.none )
 
         Connect id side letter ->
             let
@@ -201,5 +209,6 @@ view model =
         , br [] []
         , text model.str
         , button [ onClick AddWire ] [ text "add wire" ]
+        , button [ onClick RemoveWire ] [ text "remove wire" ]
         , wires model.plugboard
         ]
