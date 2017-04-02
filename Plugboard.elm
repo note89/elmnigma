@@ -167,22 +167,29 @@ addWire id plugboard =
 
 
 removeWire : Plugboard -> Plugboard
-removeWire plug =
-    -- List.foldr (\x -> ((::) x)) []
-    let
-        maybe : b -> (List a -> b) -> Maybe (List a) -> b
-        maybe d f =
-            Maybe.withDefault d << Maybe.map f
+removeWire =
+    List.reverse
+        >> List.tail
+        >> Maybe.withDefault []
+        >> List.reverse
 
-        res =
-            List.foldr (\x -> maybe [] ((::) x) >> Just) Nothing plug
-    in
-        case res of
-            Just r ->
-                r
 
-            Nothing ->
-                []
+
+-- List.foldr (\x -> ((::) x)) []
+-- let
+--     maybe : b -> (List a -> b) -> Maybe (List a) -> b
+--     maybe d f =
+--         Maybe.withDefault d << Maybe.map f
+--
+--     res =
+--         List.foldr (\x -> maybe [] ((::) x) >> Just) Nothing plug
+-- in
+--     case res of
+--         Just r ->
+--             r
+--
+--         Nothing ->
+--             []
 
 
 getWire : ID -> Plugboard -> Maybe Pair
