@@ -129,74 +129,53 @@ containerStyle =
     ]
 
 
-letterOption selected_ letter =
+letterOption letter =
     let
         strLetter =
             String.fromChar letter
     in
-        option [ value strLetter, selected selected_ ] [ text strLetter ]
+        option [ value strLetter ] [ text strLetter ]
 
 
-selectBox id_ side plugboard =
+selectBox side ( id_, ( fst, snd ) ) plugboard =
     let
+        mELetter =
+            case side of
+                One ->
+                    fst
+
+                Two ->
+                    snd
+
         alphabetList =
-            Plugboard.listOfUnUsedLetters plugboard
+            plugboard
+                |> Plugboard.listOfUnUsedLettersPlusCurrent mELetter
                 |> EnigmaLetters.toListOfChar
-
-        wirePair =
-            Plugboard.getWire id_ plugboard
-
-        addToAlphabetlist mELetter =
-            case mELetter of
-                Just eLetter ->
-                    let
-                        char =
-                            EnigmaLetters.toChar eLetter
-                    in
-                        ( Just char
-                        , (char :: alphabetList)
-                        )
-
-                Nothing ->
-                    ( Nothing, alphabetList )
-
-        ( mChar, listWithCurrent ) =
-            case wirePair of
-                Just ( fst, snd ) ->
-                    case side of
-                        One ->
-                            addToAlphabetlist fst
-
-                        Two ->
-                            addToAlphabetlist snd
-
-                Nothing ->
-                    ( Nothing, alphabetList )
     in
         div []
             [ select [ onInput <| Connect id_ side ]
-                <| List.map (\c -> letterOption (Just c == mChar) c) listWithCurrent
-                ++ [ option [ selected <| mChar == Nothing ] [] ]
+                <| List.map
+                    (\c ->
+                        letterOption c
+                    )
+                    alphabetList
+                ++ [ option [ selected <| mELetter == Nothing ] [] ]
             ]
 
 
-wirePair id_ plugboard =
+wirePair entry plugboard =
     div [ style [ "display" => "flex" ] ]
-        [ text <| "wire " ++ (toString <| id_ + 1)
-        , selectBox id_ One plugboard
-        , selectBox id_ Two plugboard
+        [ text <| "wire " ++ (toString <| (first entry) + 1)
+        , selectBox One entry plugboard
+        , selectBox Two entry plugboard
         ]
 
 
 wires plugboard =
     div []
         <| List.map
-            (\c ->
-                let
-                    id_ =
-                        first c
-                in
-                    wirePair id_ plugboard
+            (\entry ->
+                wirePair entry plugboard
             )
             plugboard
 

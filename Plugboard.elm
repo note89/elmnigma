@@ -90,6 +90,15 @@ listOfUnUsedLetters plugboard =
         List.filter (\e -> not <| member (Just e) usedLetters) EnigmaLetters.list
 
 
+listOfUnUsedLettersPlusCurrent : Maybe EnigmaLetter -> Plugboard -> List EnigmaLetter
+listOfUnUsedLettersPlusCurrent eLetter plugboard =
+    let
+        usedLetters =
+            List.filter (\l -> l /= eLetter) (listOfUsedLetters plugboard)
+    in
+        List.filter (\e -> not <| member (Just e) usedLetters) EnigmaLetters.list
+
+
 addLink : EnigmaLetter -> EnigmaLetter -> Plugboard -> Plugboard
 addLink l1 l2 plugboard =
     let
